@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Hour Makes the Crime — SF Crime Timing</title>
+
+  <!-- =====================================================
+       FONTS
+       - Playfair Display: serif display font for headings (NYT-like)
+       - Source Serif 4: refined body serif for long-form reading
+       - Source Sans 3: clean sans-serif for labels, captions, meta
+  ====================================================== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=Source+Sans+3:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* =====================================================
+       CSS CUSTOM PROPERTIES — "Midnight Ink" palette
+       Change these variables to retheme the entire page.
+    ====================================================== */
+    :root {
+      /* Backgrounds */
+      --bg-page:        #F5F2ED;   /* warm parchment — main page bg     */
+      --bg-section:     #EDEAE3;   /* slightly darker for alternating    */
+      --bg-card:        #FFFFFF;   /* viz card / pull-quote backgrounds  */
+
+      /* Typography */
+      --color-heading:  #1A1A2E;   /* deep navy — all major headings     */
+      --color-body:     #2E2E2E;   /* near-black for body text           */
+      --color-meta:     #6B7280;   /* slate grey — dates, labels, captions */
+      --color-rule:     #C8C2B8;   /* horizontal rule / divider color    */
+
+      /* Accent */
+      --color-accent:   #C0392B;   /* burnt amber-red — links, highlights */
+      --color-accent-light: #F5E6E4; /* tint for callout backgrounds     */
+
+      /* Layout */
+      --max-width-text: 680px;     /* readable line length for body copy */
+      --max-width-wide: 960px;     /* wider container for viz cards      */
+
+      /* Spacing scale */
+      --space-xs:  0.5rem;
+      --space-sm:  1rem;
+      --space-md:  2rem;
+      --space-lg:  4rem;
+      --space-xl:  7rem;
+
+      /* Typography scale */
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body:    'Source Serif 4', Georgia, serif;
+      --font-ui:      'Source Sans 3', system-ui, sans-serif;
+    }
+
+
+    /* =====================================================
+       RESET & BASE
+    ====================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 18px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--color-body);
+      font-family: var(--font-body);
+      font-weight: 300;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Utility: centred narrow text column */
+    .text-column {
+      max-width: var(--max-width-text);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    /* Utility: centred wide container (for viz) */
+    .wide-column {
+      max-width: var(--max-width-wide);
+      margin-inline: auto;
+      padding-inline: var(--space-md);
+    }
+
+    /* Horizontal rule */
+    hr.section-rule {
+      border: none;
+      border-top: 1px solid var(--color-rule);
+      margin: var(--space-lg) auto;
+      max-width: var(--max-width-text);
+    }
+
+
+    /* =====================================================
+       HEADER / HERO
+       The big opening block with category label, title,
+       subtitle, and byline. Mirrors NYT article headers.
+    ====================================================== */
+    header.hero {
+      padding-top: var(--space-xl);
+      padding-bottom: var(--space-lg);
+      border-bottom: 2px solid var(--color-heading);
+    }
+
+    /* Category tag above the title — e.g. "Data Story" */
+    .hero__category {
+      font-family: var(--font-ui);
+      font-weight: 600;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: var(--space-sm);
+    }
+
+    /* Main display title */
+    .hero__title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.08;
+      color: var(--color-heading);
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-sm);
+    }
+
+    /* Italic red accent word inside title */
+    .hero__title em {
+      font-style: italic;
+      color: var(--color-accent);
+    }
+
+    /* Deck / subtitle below the title */
+    .hero__deck {
+      font-family: var(--font-body);
+      font-size: 1.15rem;
+      font-weight: 300;
+      line-height: 1.55;
+      color: var(--color-body);
+      max-width: 600px;
+      margin-bottom: var(--space-md);
+    }
+
+    /* Byline + date row */
+    .hero__meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      color: var(--color-meta);
+      flex-wrap: wrap;
+    }
+
+    .hero__meta .byline strong {
+      color: var(--color-body);
+      font-weight: 600;
+    }
+
+    /* Thin vertical divider between byline and date */
+    .hero__meta .divider {
+      width: 1px;
+      height: 1em;
+      background: var(--color-rule);
+    }
+
+
+    /* =====================================================
+       ARTICLE BODY
+       Main reading area. Sections are separated by
+       generous vertical spacing.
+    ====================================================== */
+    article.story {
+      padding-top: var(--space-lg);
+      padding-bottom: var(--space-xl);
+    }
+
+    /* Section wrapper — each narrative beat lives in one */
+    .story__section {
+      margin-bottom: var(--space-xl);
+    }
+
+    /* Section heading (H2) */
+    .story__section h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--color-heading);
+      line-height: 1.2;
+      margin-bottom: var(--space-sm);
+    }
+
+    /* Sub-heading (H3) */
+    .story__section h3 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 600;
+      font-style: italic;
+      color: var(--color-heading);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Body paragraphs */
+    .story__section p {
+      margin-bottom: 1.3em;
+      font-size: 1rem;
+      color: var(--color-body);
+    }
+
+    /* First paragraph drop-cap style intro */
+    .story__section p.intro::first-letter {
+      font-family: var(--font-display);
+      font-size: 3.8em;
+      font-weight: 900;
+      color: var(--color-accent);
+      float: left;
+      line-height: 0.8;
+      margin-right: 0.08em;
+      margin-top: 0.05em;
+    }
+
+    /* Inline links */
+    .story__section a {
+      color: var(--color-accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+
+    .story__section a:hover {
+      opacity: 0.75;
+    }
+
+
+    /* =====================================================
+       PULL QUOTE
+       An eye-catching callout for a key insight or stat.
+       Drop one of these between two paragraphs for rhythm.
+    ====================================================== */
+    blockquote.pull-quote {
+      border-left: 4px solid var(--color-accent);
+      background: var(--bg-card);
+      padding: var(--space-md) var(--space-md) var(--space-md) calc(var(--space-md) + 4px);
+      margin: var(--space-lg) 0;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-style: italic;
+      font-weight: 400;
+      line-height: 1.45;
+      color: var(--color-heading);
+      box-shadow: 0 2px 12px rgba(26, 26, 46, 0.06);
+    }
+
+    blockquote.pull-quote cite {
+      display: block;
+      margin-top: var(--space-xs);
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-style: normal;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+    }
+
+
+    /* =====================================================
+       VISUALIZATION CARDS
+       Each viz lives inside a .viz-card. The card holds
+       the figure, a label, and a caption below.
+       Teammates: embed your HTML files in <iframe> tags
+       or replace the placeholder div with an <img> tag.
+    ====================================================== */
+    .viz-card {
+      background: var(--bg-card);
+      border: 1px solid var(--color-rule);
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(26, 26, 46, 0.07);
+      overflow: hidden;
+      margin: var(--space-lg) 0;
+    }
+
+    /* The figure area — swap the placeholder for your actual viz */
+    .viz-card__figure {
+      width: 100%;
+      background: var(--bg-section);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+      position: relative;
+    }
+
+    /* Placeholder styling — REMOVE once real viz is embedded */
+    .viz-card__placeholder {
+      text-align: center;
+      font-family: var(--font-ui);
+      color: var(--color-meta);
+    }
+
+    .viz-card__placeholder .placeholder-icon {
+      font-size: 2.5rem;
+      margin-bottom: var(--space-xs);
+      opacity: 0.4;
+    }
+
+    .viz-card__placeholder p {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    /* Caption bar below the figure */
+    .viz-card__caption {
+      padding: var(--space-sm) var(--space-md);
+      border-top: 1px solid var(--color-rule);
+    }
+
+    /* "Figure N —" label */
+    .viz-card__caption .caption-label {
+      font-family: var(--font-ui);
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.3em;
+    }
+
+    /* Caption body text */
+    .viz-card__caption p {
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: var(--color-meta);
+      margin: 0;
+    }
+
+    /* Convenience: make an <img> inside the figure fill the card */
+    .viz-card__figure img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Convenience: make an <iframe> inside the figure fill the card */
+    .viz-card__figure iframe {
+      width: 100%;
+      min-height: 480px;
+      border: none;
+      display: block;
+    }
+
+
+    /* =====================================================
+       DATA INTRO BOX
+       A small shaded block near the top that explains the
+       dataset to general-audience readers.
+    ====================================================== */
+    .data-intro {
+      background: var(--color-accent-light);
+      border-left: 3px solid var(--color-accent);
+      padding: var(--space-md);
+      margin: var(--space-lg) 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .data-intro__label {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 0.4em;
+    }
+
+    .data-intro p {
+      font-family: var(--font-ui);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--color-body);
+      margin: 0;
+    }
+
+    .data-intro p + p {
+      margin-top: 0.6em;
+    }
+
+
+    /* =====================================================
+       FOOTER
+    ====================================================== */
+    footer {
+      border-top: 2px solid var(--color-heading);
+      padding: var(--space-lg) 0 var(--space-xl);
+    }
+
+    footer h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--color-heading);
+      margin-bottom: var(--space-sm);
+    }
+
+    footer ol {
+      padding-left: 1.2em;
+    }
+
+    footer li {
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      color: var(--color-meta);
+      line-height: 1.6;
+      margin-bottom: 0.4em;
+    }
+
+    footer li a {
+      color: var(--color-accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    footer .footer-note {
+      margin-top: var(--space-md);
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      color: var(--color-meta);
+    }
+
+
+    /* =====================================================
+       RESPONSIVE ADJUSTMENTS
+    ====================================================== */
+    @media (max-width: 600px) {
+      html { font-size: 16px; }
+
+      .hero__title { font-size: 2rem; }
+
+      .viz-card__figure { min-height: 280px; }
+
+      blockquote.pull-quote { font-size: 1.05rem; }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ==================================================
+       HEADER — Hero section
+       Edit: category tag, title, deck, byline, date
+  =================================================== -->
+  <header class="hero">
+    <div class="text-column">
+
+      <!-- Category label (top of article) -->
+      <p class="hero__category">Data Story &nbsp;·&nbsp; San Francisco Crime</p>
+
+      <!-- Main title — wrap a key word in <em> for italic red accent -->
+      <h1 class="hero__title">
+        The Hour Makes <br/>
+        the <em> Crime </em>
+      </h1>
+
+      <!-- Deck / subtitle -->
+      <p class="hero__deck">
+        Twenty-two years ago, San Francisco’s billboards sold flip phones and dot-com dreams. 
+        Today, they sell Artificial Intelligence. But while the tech products have evolved, 
+        the city’s criminal patterns remain strikingly consistent. 
+        By mapping two decades of incident reports, we can see how the hour of the day still 
+        acts as a prominent predictor from white-collar fraud to street-level assault.
+      </p>
+
+      <!-- Byline + publication date -->
+      <div class="hero__meta">
+        <span class="byline">By <strong>K.O. Pálmadóttir, T.A.E. Andersen, H. Wójcik </strong></span>
+        <span class="divider"></span>
+        <span class="date">April 2026</span>
+        <span class="divider"></span>
+        <span class="course">02806 &nbsp;·&nbsp; DTU</span>
+      </div>
+
+    </div>
+  </header>
+
+
+  <!-- ==================================================
+       MAIN ARTICLE
+  =================================================== -->
+  <main>
+    <article class="story">
+
+
+      <!-- -----------------------------------------------
+           SECTION 1 — Introduction + dataset explainer
+      ------------------------------------------------ -->
+      <section class="story__section">
+        <div class="text-column">
+
+          <!-- Opening paragraph with drop-cap -->
+          <p class="intro">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. At the heart of every city lies an
+            invisible rhythm — a pulse that governs not just commerce and culture, but also
+            crime. San Francisco is no exception.
+          </p>
+
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+            exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+            irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur.
+          </p>
+
+          <!-- Dataset explainer box — helps general-audience readers -->
+          <div class="data-intro">
+            <p class="data-intro__label">About the data </p>
+            <p>
+              This analysis draws on the <strong>San Francisco Police Department (SFPD) Incident
+              Reports</strong> database, a public record of crimes reported to the SFPD from 2003
+              to the present. Each entry logs the type of crime, the date and time it was reported,
+              and the neighborhood in which it occurred. Note that the data is a result of a
+              concatenation of two datasets: one from 2003 to 2018 and one from 2018 to the present.
+            </p>
+            <p>
+              We focus on nine crime categories: Arson, Assault, Burglary, Fraud, Larceny/Theft,
+              Missing Persons, Motor Vehicle Theft, Prostitution, and Robbery, collectively known
+              in the course as <em>Focus Crimes</em>. These were selected because they represent a meaningful cross-section
+              of criminal activity and are just our personal favourites.
+            </p>
+            <p>
+              To make two decades of data align with each other, we unified disparate reporting styles into one modern system. 
+              Sometimes that meant making executive calls, like deciding "Vandalism" and "Malicious Mischief" are basically related. 
+              Keep in mind, though, that this is a map of reported incidents. If a crime wasn't called in or an officer didn't file a report, 
+              it’s not in our charts. We’re looking at the city through the lens of police paperwork, which is often its own version of reality. 
+              And as for the timing? It’s accurate enough to gather insights, but just messy enough that you shouldn't bet your life on it.
+            </p>
+          </div>
+
+          <p>
+            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+            mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+            sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          </p>
+
+        </div>
+      </section>
+
+
+      <hr class="section-rule" />
+
+
+      <!-- -----------------------------------------------
+           SECTION 2 — First narrative beat + Viz 1
+           Static chart: violin plot of time-of-day by crime type
+      ------------------------------------------------ -->
+      <section class="story__section">
+        <div class="text-column">
+
+          <h2>Every Crime Has Its Peak Hour</h2>
+
+          <p>
+            Two decades of San Francisco crime data shows us that each crime has its favourite part of the day (at least most of them). 
+            We grouped the incidents into our “focus crimes” and plotted their distribution across a 24-hour cycle. 
+            The results? Both interesting, but also a bit concerning. While most of the city sleeping and charging their batteries, 
+            arsonists and robbers are just clocking into their shift. Actually, the evening/nightly pattern is very common. 
+            In fact, if you’re looking for one takeaway, it’s this: according to the data, 7 p.m. is officially the worst time to go out.
+          </p>
+
+          <div class="text-column">
+            <blockquote class="pull-quote">
+              "Every crime follows its own internal logic."
+              <cite>— from the data</cite>
+            </blockquote>
+          </div>
+
+          <p>
+            All jokes aside, every crime follows its own internal logic. 
+            A missing person is usually reported throughout the day. 
+            Prostitution, on the other hand, is a classic "5-to-9" operation.
+            And if you’re wondering why we haven't mentioned fraud yet? 
+            Don’t worry, we’ll come back to that.
+          </p>
+
+        </div>
+
+        <!-- Pull quote — a memorable one-liner from the analysis -->
+        
+
+        <div class="text-column">
+          <p>
+            Before we show you the data, a quick reality check: these incidents are logged by police officers manually typing into a database. 
+            Are we all sometimes lazy? Yes. Therefore, you shouldn't treat this data as the single source of truth down to the minute. 
+            Now, let’s talk about the elephant in the room: fraud. Fraud doesn't just happen "out of the blue"; it’s usually the culmination 
+            of a long investigation. While the charts might suggest a tidy schedule, ask yourself: is that a genuine crime pattern, or just a 
+            bunch of "placeholder" timestamps from officers who didn't want to guess when the embezzlement actually started? As said, the data 
+            is never perfect.
+          </p>
+        </div>
+
+        <!-- *** VIZ 1 — Static chart (violin plot PNG) ***
+             Replace the placeholder div with:
+             <img src="figures/violin_time_of_day.png" alt="Violin plot of time-of-day distribution by crime type" />
+        -->
+        <div class="wide-column">
+          <div class="viz-card">
+            <div class="viz-card__figure">
+              <img src="figures/violin_time_of_day.png" alt="Violin plot of time-of-day distribution by crime type" />
+            </div>
+            <div class="viz-card__caption">
+              <p class="caption-label">Figure 1 — Time-of-Day Distribution by Crime Type</p>
+              <p>
+                Each violin shows the distribution of reported incidents across the 24-hour day
+                for a given crime type, based on SFPD data from 2003–2025. The width at any
+                hour reflects how frequently crimes of that type are reported at that time.
+                Dotted lines mark the 25th, 50th, and 75th percentiles. Notice how for some crimes,
+                e.g. larceny theft, the crime peaks before 8 p.m. while for others, e.g. prostitution,
+                things do not get going until after 10 p.m.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <hr class="section-rule" />
+
+
+      <!-- -----------------------------------------------
+           SECTION 3 — Second narrative beat + Viz 2
+           Map visualization (time + date correlation, etc.)
+      ------------------------------------------------ -->
+      <section class="story__section">
+        <div class="text-column">
+
+          <h2>The crime of the hour</h2>
+
+          <p>
+            But not all crimes are created equal, and some are clearly more prevalent then others at certain time of the day.
+            By visualizing the probability of each crime type being reported at different hours of the day with a heatmap, 
+            we can get a clearer picture of the crime patterns in San Francisco the last two decades. 
+            And although the heatmap also clealy follows the same peak pattern as the violin plot, 
+            with most crimes being more likely to be reported in the evening/night hours. 
+            What stands out is just how much of a difference there is in the probability of each of these crimes being reported.
+          </p>
+
+
+          <p>
+            The heatmap clearly visualize how the probability of both Arson and Prostitution is very low at any hour of the day, 
+            with the probabilty of arson being reported never going above 0.02 at any time during the day 
+            and the probability of prostitution being reported never going above 0.04. 
+            Meanwhile, larceny theft is the clear "winner", not only is it the crime of <b>the</b> hour but rather the crime of <b>every</b> hour, 
+            being the crime with the highest probability of being reported at any hour of the day.
+            Turns out, if there is any crime that you should be on the guard for, it's not the one that happens at night, 
+            but the one that happens at all hours of the day.
+          </p>
+
+        </div>
+
+        <!-- *** VIZ 2 — Interactive map (Folium / Plotly choropleth) ***
+             Replace the placeholder div with an iframe:
+             <iframe src="figures/crime_map.html" title="Crime map of San Francisco"></iframe>
+        -->
+        <div class="wide-column">
+          <div class="viz-card">
+            <div class="viz-card__figure">
+              <iframe src="figures/crime_time_heatmap.html" title="Probability of Each Crime Type by Hour"></iframe>
+            </div>
+            <div class="viz-card__caption">
+              <p class="caption-label">Figure 2 — Probability of Each Crime Type by Hour</p>
+              <p>
+                [The heatmap shows the probability of each crime type occurring at different hours of the day. 
+                The probability is calculated from the data that has been recorded and kept by the San Francisco 
+                Police Department for the last two decades. Notice how out of 9 crimes shown, 
+                larceny theft is clearly the crime that has the biggest probability to be reported at 
+                any hour during the day compared to other crimes.]
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-column">
+          <p>
+            Another discovery that sticks out in the heatmap, our theory of officers just picking a random time for fraud reports, 
+            might not be so far-fetched after all. As the heatmap somehow shows that the probability of a fraud being 
+            reported is highest at midnight. Not exactly the crime that we think of as a "midnight crime".
+            But again, this is where the data's limitations come into play, and especially when it is reported by people who might have 
+            other potenially more important things to do than filling out a report.
+          </p>
+        </div>
+
+      </section>
+
+
+      <hr class="section-rule" />
+
+
+      <!-- -----------------------------------------------
+           SECTION 4 — Third narrative beat + Viz 3
+           Interactive Plotly visualization
+      ------------------------------------------------ -->
+      <section class="story__section">
+           <div class="text-column">
+               <h2>Has the Pattern Changed Over Time?</h2>
+               <p>
+                   While we've established that crimes follow daily rhythms, an interesting question arises:
+                   has this pattern remained steady over the past two decades? As the city has evolved
+                   one might expect the timing of crimes to shift as well.
+               </p>
+               <p>
+                   To investigate this, we plotted the probability of certain categories of crime occurring at each hour of the day,
+                   using our first year of data as a baseline. We then tracked the difference between this baseline and each subsequent
+                   year. While the overall pattern is relatively steady, specific categories display shifts in the city's heartbeat.
+               </p>
+           </div>
+           <div class="wide-column">
+               <div class="viz-card">
+                   <div class="viz-card__figure">
+                       <iframe
+                               src="figures/crime_hourly_slider.html" title="Interactive crime visualization"
+                               style="width: 100%; height: 600px; border: none;">
+                       </iframe>
+                   </div>
+                   <div class="viz-card__caption">
+                       <p class="caption-label">Figure 3 — Hourly Crime Probability Changes Over Time</p>
+                       <p>
+                           Blue bars represent the baseline probability from 2003. Use the slider
+                           to track changes by selecting a new year to compare to, and the dropdown to select a crime category.
+                           Red bars indicate increases and Green bars indicate decreases relative to that baseline.
+                       </p>
+                   </div>
+               </div>
+           </div>
+           <div class="text-column">
+               <p>
+                   The data shows a divide between violent crime and property offenses.
+                   Violent crimes like assault and robbery have remained relatively consistent, their hourly patterns
+                   remaining essentially unchanged over twenty years.
+                   On the other hand property crimes, such as arson, burglary and larceny show higher sensitivity to the
+                   city's changing landscape as time progresses, shifting more visibly from the baseline.
+                   Prostitution has moved later into the night, moving from an early evening window to
+                   the late-night window. Fraud is an outlier in how it has changed here, being a non-violent crime,
+                   that nevertheless has remained relatively consistent. Though a spike at midnight is seen.
+                   This is likely an artifact of the dataset and not a reflection of when fraud actually occurs.
+               </p>
+               <p>
+                   So while the timing of violence remains relatively fixed, other crimes seem to be better matching the city’s evolving nature.
+               </p>
+           </div>
+      </section>
+
+
+
+      <hr class="section-rule" />
+
+
+      <!-- -----------------------------------------------
+           SECTION 5 — Conclusion
+      ------------------------------------------------ -->
+      <section class="story__section">
+        <div class="text-column">
+
+          <h2>What the Clock Tells Us</h2>
+
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+            incididunt ut labore et dolore magna aliqua. Understanding when crimes happen is
+            just as important as understanding where — and together, timing and geography
+            paint a portrait of a city's hidden rhythms.
+          </p>
+
+          <p>
+            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+            ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit
+            esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
+            proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+
+        </div>
+      </section>
+
+
+    </article>
+  </main>
+
+
+  <!-- ==================================================
+       FOOTER — References
+       Add real citations here as you find them.
+       Format: Author, "Title," Publication, Year. URL
+  =================================================== -->
+  <footer>
+    <div class="text-column">
+
+      <h3>References</h3>
+
+      <ol>
+        <li>
+          San Francisco Police Department, <em>SFPD Incident Reports: 2018 to Present</em>,
+          DataSF Open Data Portal.
+          <a href="https://data.sfgov.org/Public-Safety/Police-Department-Incident-Reports-2018-to-Present/wg3w-h783" target="_blank" rel="noopener">
+            data.sfgov.org
+          </a>
+        </li>
+        <li>
+          <!-- Placeholder — replace with a real source backing up a finding -->
+          [Author], "[Article title supporting fraud-is-daytime finding],"
+          <em>[Publication]</em>, [Year].
+          <a href="#" target="_blank" rel="noopener">[URL]</a>
+        </li>
+        <li>
+          <!-- Placeholder — replace with a real source about SF nightlife / bar closing time -->
+          [Author], "[Article title about SF nightlife and assault patterns],"
+          <em>[Publication]</em>, [Year].
+          <a href="#" target="_blank" rel="noopener">[URL]</a>
+        </li>
+        <li>
+          <!-- Placeholder — add more as needed -->
+          [Additional reference]
+        </li>
+      </ol>
+
+      <p class="footer-note">
+        Data story produced as part of 02806 Social Data Analysis &amp; Visualization,
+        Technical University of Denmark, Spring 2026.
+      </p>
+
+    </div>
+  </footer>
+
+
+</body>
+</html>
